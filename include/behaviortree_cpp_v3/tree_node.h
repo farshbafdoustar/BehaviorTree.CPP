@@ -22,8 +22,8 @@
 #include "behaviortree_cpp_v3/blackboard.h"
 #include "behaviortree_cpp_v3/utils/strcat.hpp"
 
-#ifdef _MSC_VER 
-#pragma warning(disable : 4127) 
+#ifdef _MSC_VER
+#pragma warning(disable : 4127)
 #endif
 
 namespace BT
@@ -81,6 +81,10 @@ class TreeNode
     NodeStatus status() const;
 
     void setStatus(NodeStatus new_status);
+
+    double progress() const;
+
+    void setProgress(double new_progress);
 
     /// Name of the instance, not the type
     const std::string& name() const;
@@ -166,6 +170,7 @@ class TreeNode
     const std::string name_;
 
     NodeStatus status_;
+    double progress_;
 
     std::condition_variable state_condition_variable_;
 

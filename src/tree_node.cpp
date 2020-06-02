@@ -23,10 +23,7 @@ static uint16_t getUID()
 }
 
 TreeNode::TreeNode(std::string name, NodeConfiguration config)
-  : name_(std::move(name)),
-    status_(NodeStatus::IDLE),
-    uid_(getUID()),
-    config_(std::move(config))
+  : name_(std::move(name)), status_(NodeStatus::IDLE), uid_(getUID()), config_(std::move(config))
 {
 }
 
@@ -40,16 +37,43 @@ NodeStatus TreeNode::executeTick()
 void TreeNode::setStatus(NodeStatus new_status)
 {
     NodeStatus prev_status;
+    double prev_progress;
     {
         std::unique_lock<std::mutex> UniqueLock(state_mutex_);
         prev_status = status_;
         status_ = new_status;
+
+        switch (status_)
+        {
+            case BT::NodeStatus::IDLE:
+                progress_ = 0;
+                break;
+
+            case BT::NodeStatus::SUCCESS:
+                progress_ = 100;
+                break;
+        }
     }
     if (prev_status != new_status)
     {
         state_condition_variable_.notify_all();
         state_change_signal_.notify(std::chrono::high_resolution_clock::now(), *this, prev_status,
                                     new_status);
+    }
+}
+void TreeNode::setProgress(double new_progress)
+{
+    double prev_progress;
+    {
+        std::unique_lock<std::mutex> UniqueLock(state_mutex_);
+        prev_progress = progress_;
+        progress_ = new_progress;
+    }
+    if (prev_progress != new_progress)
+    {
+        state_condition_variable_.notify_all();
+        state_change_signal_.notify(std::chrono::high_resolution_clock::now(), *this, status_,
+                                    status_);
     }
 }
 
@@ -59,11 +83,17 @@ NodeStatus TreeNode::status() const
     return status_;
 }
 
+double TreeNode::progress() const
+{
+    std::lock_guard<std::mutex> lock(state_mutex_);
+    return progress_;
+}
+
 NodeStatus TreeNode::waitValidStatus()
 {
     std::unique_lock<std::mutex> lock(state_mutex_);
 
-    while( isHalted() )
+    while (isHalted())
     {
         state_condition_variable_.wait(lock);
     }
@@ -96,7 +126,7 @@ const std::string& TreeNode::registrationName() const
     return registration_ID_;
 }
 
-const NodeConfiguration &TreeNode::config() const
+const NodeConfiguration& TreeNode::config() const
 {
     return config_;
 }
@@ -104,12 +134,14 @@ const NodeConfiguration &TreeNode::config() const
 bool TreeNode::isBlackboardPointer(StringView str)
 {
     const auto size = str.size();
-    if( size >= 3 && str.back() == '}')
+    if (size >= 3 && str.back() == '}')
     {
-        if( str[0] == '{') {
+        if (str[0] == '{')
+        {
             return true;
         }
-        if( size >= 4 && str[0] == '$' && str[1] == '{') {
+        if (size >= 4 && str[0] == '$' && str[1] == '{')
+        {
             return true;
         }
     }
@@ -119,13 +151,15 @@ bool TreeNode::isBlackboardPointer(StringView str)
 StringView TreeNode::stripBlackboardPointer(StringView str)
 {
     const auto size = str.size();
-    if( size >= 3 && str.back() == '}')
+    if (size >= 3 && str.back() == '}')
     {
-        if( str[0] == '{') {
-            return str.substr(1, size-2);
+        if (str[0] == '{')
+        {
+            return str.substr(1, size - 2);
         }
-        if( str[0] == '$' && str[1] == '{') {
-            return str.substr(2, size-3);
+        if (str[0] == '$' && str[1] == '{')
+        {
+            return str.substr(2, size - 3);
         }
     }
     return {};
@@ -133,32 +167,32 @@ StringView TreeNode::stripBlackboardPointer(StringView str)
 
 Optional<StringView> TreeNode::getRemappedKey(StringView port_name, StringView remapping_value)
 {
-    if( remapping_value == "=" )
+    if (remapping_value == "=")
     {
         return {port_name};
     }
-    if( isBlackboardPointer( remapping_value ) )
+    if (isBlackboardPointer(remapping_value))
     {
         return {stripBlackboardPointer(remapping_value)};
     }
     return nonstd::make_unexpected("Not a blackboard pointer");
 }
 
-void TreeNode::modifyPortsRemapping(const PortsRemapping &new_remapping)
+void TreeNode::modifyPortsRemapping(const PortsRemapping& new_remapping)
 {
-    for (const auto& new_it: new_remapping)
+    for (const auto& new_it : new_remapping)
     {
-        auto it = config_.input_ports.find( new_it.first );
-        if( it != config_.input_ports.end() )
+        auto it = config_.input_ports.find(new_it.first);
+        if (it != config_.input_ports.end())
         {
             it->second = new_it.second;
         }
-        it = config_.output_ports.find( new_it.first );
-        if( it != config_.output_ports.end() )
+        it = config_.output_ports.find(new_it.first);
+        if (it != config_.output_ports.end())
         {
             it->second = new_it.second;
         }
     }
 }
 
-}   // end namespace
+}   // namespace BT
