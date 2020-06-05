@@ -80,11 +80,7 @@ class TreeNode
 
     NodeStatus status() const;
 
-    void setStatus(NodeStatus new_status);
-
     double progress() const;
-
-    void setProgress(double new_progress);
 
     /// Name of the instance, not the type
     const std::string& name() const;
@@ -174,6 +170,8 @@ class TreeNode
     void modifyPortsRemapping(const PortsRemapping& new_remapping);
 
     void setStatus(NodeStatus new_status);
+
+    void setProgress(double new_progress);
 
   private:
     const std::string name_;
