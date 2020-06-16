@@ -15,30 +15,24 @@
 
 namespace BT
 {
-
 constexpr const char* ParallelNode::THRESHOLD_KEY;
 
 ParallelNode::ParallelNode(const std::string& name, unsigned threshold)
-    : ControlNode::ControlNode(name, {} ),
-    threshold_(threshold),
-    read_parameter_from_ports_(false)
+  : ControlNode::ControlNode(name, {}), threshold_(threshold), read_parameter_from_ports_(false)
 {
     setRegistrationID("Parallel");
 }
 
-ParallelNode::ParallelNode(const std::string &name,
-                               const NodeConfiguration& config)
-    : ControlNode::ControlNode(name, config),
-      threshold_(0),
-      read_parameter_from_ports_(true)
+ParallelNode::ParallelNode(const std::string& name, const NodeConfiguration& config)
+  : ControlNode::ControlNode(name, config), threshold_(0), read_parameter_from_ports_(true)
 {
 }
 
 NodeStatus ParallelNode::tick()
 {
-    if(read_parameter_from_ports_)
+    if (read_parameter_from_ports_)
     {
-        if( !getInput(THRESHOLD_KEY, threshold_) )
+        if (!getInput(THRESHOLD_KEY, threshold_))
         {
             throw RuntimeError("Missing parameter [", THRESHOLD_KEY, "] in ParallelNode");
         }
@@ -48,8 +42,9 @@ NodeStatus ParallelNode::tick()
     size_t failure_childred_num = 0;
 
     const size_t children_count = children_nodes_.size();
+    calculateProgress();
 
-    if( children_count < threshold_)
+    if (children_count < threshold_)
     {
         throw LogicError("Number of children is less than threshold. Can never suceed.");
     }
@@ -62,11 +57,12 @@ NodeStatus ParallelNode::tick()
         bool in_skip_list = (skip_list_.count(i) != 0);
 
         NodeStatus child_status;
-        if( in_skip_list )
+        if (in_skip_list)
         {
             child_status = child_node->status();
         }
-        else {
+        else
+        {
             child_status = child_node->executeTick();
         }
 
@@ -74,7 +70,7 @@ NodeStatus ParallelNode::tick()
         {
             case NodeStatus::SUCCESS:
             {
-                if( !in_skip_list )
+                if (!in_skip_list)
                 {
                     skip_list_.insert(i);
                 }
@@ -86,11 +82,12 @@ NodeStatus ParallelNode::tick()
                     haltChildren();
                     return NodeStatus::SUCCESS;
                 }
-            } break;
+            }
+            break;
 
             case NodeStatus::FAILURE:
             {
-                if( !in_skip_list )
+                if (!in_skip_list)
                 {
                     skip_list_.insert(i);
                 }
@@ -102,12 +99,14 @@ NodeStatus ParallelNode::tick()
                     haltChildren();
                     return NodeStatus::FAILURE;
                 }
-            } break;
+            }
+            break;
 
             case NodeStatus::RUNNING:
             {
                 // do nothing
-            }  break;
+            }
+            break;
 
             default:
             {
@@ -135,4 +134,4 @@ void ParallelNode::setThresholdM(unsigned int threshold_M)
     threshold_ = threshold_M;
 }
 
-}
+}   // namespace BT

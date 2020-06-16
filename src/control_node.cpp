@@ -67,4 +67,26 @@ void ControlNode::haltChildren(size_t first)
     }
 }
 
-} // end namespace
+void ControlNode::calculateProgress()
+{
+    std::cout << "controlnode " << this->name() << " , Number of child: " << children_nodes_.size()
+              << std::endl;
+    if (children_nodes_.size() > 0)
+    {
+        double sum = 0;
+        int count_effective_children = 0;
+        for (size_t i = 0; i < children_nodes_.size(); i++)
+        {
+            if (children_nodes_[i]->progress_weight_ > 0)
+            {
+                sum += children_nodes_[i]->progress_ * children_nodes_[i]->progress_weight_;
+                count_effective_children++;
+            }
+        }
+        this->setProgress(sum / count_effective_children);
+        std::cout << "progressNode " << this->name() << " , progressTest "
+                  << sum / count_effective_children << std::endl;
+    }
+}
+
+}   // namespace BT

@@ -12,72 +12,73 @@
 
 #include "behaviortree_cpp_v3/controls/if_then_else_node.h"
 
-
 namespace BT
 {
-
-IfThenElseNode::IfThenElseNode(const std::string &name)
-  : ControlNode::ControlNode(name, {} )
-  , child_idx_(0)
+IfThenElseNode::IfThenElseNode(const std::string& name)
+  : ControlNode::ControlNode(name, {}), child_idx_(0)
 {
-  setRegistrationID("IfThenElse");
+    setRegistrationID("IfThenElse");
 }
 
 void IfThenElseNode::halt()
 {
-  child_idx_ = 0;
-  ControlNode::halt();
+    child_idx_ = 0;
+    ControlNode::halt();
 }
 
 NodeStatus IfThenElseNode::tick()
 {
-  const size_t children_count = children_nodes_.size();
+    const size_t children_count = children_nodes_.size();
 
-  if(children_count != 2 && children_count != 3)
-  {
-    throw std::logic_error("IfThenElseNode must have either 2 or 3 children");
-  }
-
-  setStatus(NodeStatus::RUNNING);
-
-  if (child_idx_ == 0)
-  {
-    NodeStatus condition_status = children_nodes_[0]->executeTick();
-
-    if (condition_status == NodeStatus::RUNNING)
+    if (children_count != 2 && children_count != 3)
     {
-      return condition_status;
+        throw std::logic_error("IfThenElseNode must have either 2 or 3 children");
     }
-    else if (condition_status == NodeStatus::SUCCESS)
-    {
-      child_idx_ = 1;
-    }
-    else if (condition_status == NodeStatus::FAILURE)
-    {
-      if( children_count == 3){
-        child_idx_ = 2;
-      }
-      else{
-        return condition_status;
-      }
-    }
-  }
-  // not an else
-  if (child_idx_ > 0)
-  {
-    NodeStatus status = children_nodes_[child_idx_]->executeTick();
-    if (status == NodeStatus::RUNNING)
-    {
-      return NodeStatus::RUNNING;
-    }
-    else{
-      haltChildren();
-      child_idx_ = 0;
-      return status;
-    }
-  }
 
-  throw std::logic_error("Something unexpected happened in IfThenElseNode");
+    setStatus(NodeStatus::RUNNING);
+    calculateProgress();
+
+    if (child_idx_ == 0)
+    {
+        NodeStatus condition_status = children_nodes_[0]->executeTick();
+
+        if (condition_status == NodeStatus::RUNNING)
+        {
+            return condition_status;
+        }
+        else if (condition_status == NodeStatus::SUCCESS)
+        {
+            child_idx_ = 1;
+        }
+        else if (condition_status == NodeStatus::FAILURE)
+        {
+            if (children_count == 3)
+            {
+                child_idx_ = 2;
+            }
+            else
+            {
+                return condition_status;
+            }
+        }
+    }
+    // not an else
+    if (child_idx_ > 0)
+    {
+        NodeStatus status = children_nodes_[child_idx_]->executeTick();
+        if (status == NodeStatus::RUNNING)
+        {
+            return NodeStatus::RUNNING;
+        }
+        else
+        {
+            haltChildren();
+            child_idx_ = 0;
+            return status;
+        }
+    }
+
+    throw std::logic_error("Something unexpected happened in IfThenElseNode");
 }
 
-}  // namespace BT
+}   // namespace BT

@@ -173,11 +173,14 @@ class TreeNode
 
     void setProgress(double new_progress);
 
+    void setProgressWeight(double new_progress_weight);
+
   private:
     const std::string name_;
 
     NodeStatus status_;
-    double progress_;
+    double progress_ = 0;
+    double progress_weight_ = 1;
 
     std::condition_variable state_condition_variable_;
 

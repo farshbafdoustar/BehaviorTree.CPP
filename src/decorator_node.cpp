@@ -54,6 +54,10 @@ void DecoratorNode::haltChild()
     }
     child_node_->setStatus(NodeStatus::IDLE);
 }
+void DecoratorNode::calculateProgress()
+{
+    this->setProgress(child_node_->progress_);
+}
 
 SimpleDecoratorNode::SimpleDecoratorNode(const std::string& name, TickFunctor tick_functor,
                                          const NodeConfiguration& config)
@@ -70,11 +74,11 @@ NodeStatus DecoratorNode::executeTick()
 {
     NodeStatus status = TreeNode::executeTick();
     NodeStatus child_status = child()->status();
-    if( child_status == NodeStatus::SUCCESS || child_status == NodeStatus::FAILURE )
+    if (child_status == NodeStatus::SUCCESS || child_status == NodeStatus::FAILURE)
     {
         child()->setStatus(NodeStatus::IDLE);
     }
     return status;
 }
 
-}
+}   // namespace BT

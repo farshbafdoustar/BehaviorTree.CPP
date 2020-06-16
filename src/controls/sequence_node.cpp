@@ -16,11 +16,8 @@
 
 namespace BT
 {
-
-
 SequenceNode::SequenceNode(const std::string& name)
-    : ControlNode::ControlNode(name, {} )
-  , current_child_idx_(0)
+  : ControlNode::ControlNode(name, {}), current_child_idx_(0)
 {
     setRegistrationID("Sequence");
 }
@@ -41,7 +38,7 @@ NodeStatus SequenceNode::tick()
     {
         TreeNode* current_child_node = children_nodes_[current_child_idx_];
         const NodeStatus child_status = current_child_node->executeTick();
-
+        calculateProgress();
         switch (child_status)
         {
             case NodeStatus::RUNNING:
@@ -74,7 +71,8 @@ NodeStatus SequenceNode::tick()
         haltChildren();
         current_child_idx_ = 0;
     }
+    calculateProgress();
     return NodeStatus::SUCCESS;
 }
 
-}
+}   // namespace BT

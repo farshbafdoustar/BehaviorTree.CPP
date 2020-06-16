@@ -15,10 +15,8 @@
 #include "behaviortree_cpp_v3/action_node.h"
 namespace BT
 {
-
 FallbackNode::FallbackNode(const std::string& name)
-    : ControlNode::ControlNode(name, {} )
-    ,current_child_idx_(0)
+  : ControlNode::ControlNode(name, {}), current_child_idx_(0)
 {
     setRegistrationID("Fallback");
 }
@@ -28,6 +26,7 @@ NodeStatus FallbackNode::tick()
     const size_t children_count = children_nodes_.size();
 
     setStatus(NodeStatus::RUNNING);
+    calculateProgress();
 
     while (current_child_idx_ < children_count)
     {
@@ -75,4 +74,4 @@ void FallbackNode::halt()
     ControlNode::halt();
 }
 
-}
+}   // namespace BT

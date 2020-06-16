@@ -13,6 +13,7 @@
 
 #include "behaviortree_cpp_v3/tree_node.h"
 #include <cstring>
+#include <ostream>
 
 namespace BT
 {
@@ -37,9 +38,9 @@ NodeStatus TreeNode::executeTick()
 void TreeNode::setStatus(NodeStatus new_status)
 {
     NodeStatus prev_status;
-    double prev_progress;
+
     {
-        std::unique_lock<std::mutex> UniqueLock(state_mutex_);
+        std::unique_lock<std::mutex> UniqueLockState(state_mutex_);
         prev_status = status_;
         status_ = new_status;
 
@@ -65,16 +66,19 @@ void TreeNode::setProgress(double new_progress)
 {
     double prev_progress;
     {
-        std::unique_lock<std::mutex> UniqueLock(state_mutex_);
         prev_progress = progress_;
         progress_ = new_progress;
     }
-    if (prev_progress != new_progress)
-    {
-        state_condition_variable_.notify_all();
-        state_change_signal_.notify(std::chrono::high_resolution_clock::now(), *this, status_,
-                                    status_);
-    }
+    // if (prev_progress != new_progress)
+    // {
+    state_condition_variable_.notify_all();
+    state_change_signal_.notify(std::chrono::high_resolution_clock::now(), *this,
+                                BT::NodeStatus::IDLE, BT::NodeStatus::SUCCESS);
+    // }
+}
+void TreeNode::setProgressWeight(double new_progress_weight)
+{
+    progress_weight_ = new_progress_weight;
 }
 
 NodeStatus TreeNode::status() const
@@ -85,7 +89,6 @@ NodeStatus TreeNode::status() const
 
 double TreeNode::progress() const
 {
-    std::lock_guard<std::mutex> lock(state_mutex_);
     return progress_;
 }
 
@@ -133,15 +136,15 @@ const NodeConfiguration& TreeNode::config() const
 
 StringView TreeNode::getRawPortValue(const std::string& key) const
 {
-  auto remap_it = config_.input_ports.find(key);
-  if (remap_it == config_.input_ports.end())
-  {
-    throw std::logic_error(StrCat("getInput() failed because "
-      "NodeConfiguration::input_ports "
-      "does not contain the key: [",
-      key, "]"));
-  }
-  return remap_it->second;
+    auto remap_it = config_.input_ports.find(key);
+    if (remap_it == config_.input_ports.end())
+    {
+        throw std::logic_error(StrCat("getInput() failed because "
+                                      "NodeConfiguration::input_ports "
+                                      "does not contain the key: [",
+                                      key, "]"));
+    }
+    return remap_it->second;
 }
 
 bool TreeNode::isBlackboardPointer(StringView str)

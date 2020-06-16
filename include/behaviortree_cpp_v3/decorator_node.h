@@ -9,9 +9,9 @@ class DecoratorNode : public TreeNode
 {
   protected:
     TreeNode* child_node_;
+    void calculateProgress();
 
   public:
-
     DecoratorNode(const std::string& name, const NodeConfiguration& config);
 
     virtual ~DecoratorNode() override = default;
@@ -53,7 +53,8 @@ class SimpleDecoratorNode : public DecoratorNode
     typedef std::function<NodeStatus(NodeStatus, TreeNode&)> TickFunctor;
 
     // You must provide the function to call when tick() is invoked
-    SimpleDecoratorNode(const std::string& name, TickFunctor tick_functor, const NodeConfiguration& config);
+    SimpleDecoratorNode(const std::string& name, TickFunctor tick_functor,
+                        const NodeConfiguration& config);
 
     ~SimpleDecoratorNode() override = default;
 
@@ -62,6 +63,6 @@ class SimpleDecoratorNode : public DecoratorNode
 
     TickFunctor tick_functor_;
 };
-}
+}   // namespace BT
 
 #endif

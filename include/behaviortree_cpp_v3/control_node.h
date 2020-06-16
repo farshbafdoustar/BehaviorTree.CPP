@@ -23,6 +23,7 @@ class ControlNode : public TreeNode
 {
   protected:
     std::vector<TreeNode*> children_nodes_;
+    void calculateProgress();
 
   public:
     ControlNode(const std::string& name, const NodeConfiguration& config);
@@ -45,8 +46,8 @@ class ControlNode : public TreeNode
 
     void haltChildren();
 
-    [[deprecated( "deprecated: please use explicitly haltChildren() or haltChild(i)")]]
-    void haltChildren(size_t first);
+    [[deprecated("deprecated: please use explicitly haltChildren() or haltChild(i)")]] void
+    haltChildren(size_t first);
 
     void haltChild(size_t i);
 
@@ -55,6 +56,6 @@ class ControlNode : public TreeNode
         return NodeType::CONTROL;
     }
 };
-}
+}   // namespace BT
 
 #endif
