@@ -69,8 +69,8 @@ void ControlNode::haltChildren(size_t first)
 
 void ControlNode::calculateProgress()
 {
-    std::cout << "controlnode " << this->name() << " , Number of child: " << children_nodes_.size()
-              << std::endl;
+    //    std::cout << "controlnode " << this->name() << " , Number of child: " << children_nodes_.size()
+    //              << std::endl;
     if (children_nodes_.size() > 0)
     {
         double sum = 0;
@@ -84,8 +84,8 @@ void ControlNode::calculateProgress()
             }
         }
         this->setProgress(sum / count_effective_children);
-        std::cout << "progressNode " << this->name() << " , progressTest "
-                  << sum / count_effective_children << std::endl;
+        //        std::cout << "progressNode " << this->name() << " , progressTest "
+        //                  << sum / count_effective_children << std::endl;
     }
 }
 
